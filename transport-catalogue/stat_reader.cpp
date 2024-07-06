@@ -1,18 +1,19 @@
 #include "stat_reader.h"
 
-void query_(TransportCatalogue& catalogue, std::string_view str) {
+void query_(TransportCatalogue& catalogue, std::string_view str, std::ostream& output) {
     if (str.substr(0, 3) == "Bus") {
         auto entry = 4;
         str = str.substr(entry);
         
         const Bus* bus = catalogue.get_bus(str);
         if (bus != nullptr) {
-            std::cout << "Bus " << bus->name_ << ": "
-                      << bus->stops_.size() << " stops on route, "
-                      << catalogue.get_uniq_stops(bus) << " unique stops, "
-                      << std::setprecision(6) << catalogue.get_length(bus) << " route length" << std::endl;
-        } else {      
-            std::cout << "Bus " << str << ": not found" << std::endl;
+            BusStatistics stats = catalogue.get_bus_statistics(bus);
+            output << "Bus " << bus->name_ << ": "
+                   << stats.stops_count << " stops on route, "
+                   << stats.unique_stops_count << " unique stops, "
+                   << std::setprecision(6) << stats.route_length << " route length" << std::endl;
+        } else {
+            output << "Bus " << str << ": not found" << std::endl;
         }
     } else if (str.substr(0, 4) == "Stop") {
         auto entry = 5;
@@ -20,36 +21,36 @@ void query_(TransportCatalogue& catalogue, std::string_view str) {
 
         const Stop* stop = catalogue.get_stop(str);
         if (stop == nullptr) {
-            std::cout << "Stop " << str << ": not found" << std::endl;
+            output << "Stop " << str << ": not found" << std::endl;
         } else {
-            auto buses = catalogue.get_buses_by_stop(str);
+            const auto& buses = catalogue.get_buses_by_stop(str);
             if (buses.empty()) {
-                std::cout << "Stop " << str << ": no buses" << std::endl;
+                output << "Stop " << str << ": no buses" << std::endl;
             } else {
-                std::cout << "Stop " << str << ": buses";
+                output << "Stop " << str << ": buses";
                 for (const auto& bus : buses) {
-                    std::cout << " " << bus;
+                    output << " " << bus;
                 }
-                std::cout << std::endl;
+                output << std::endl;
             }
         }
     }
 }
 
-void output_(TransportCatalogue& catalogue) {
+void output_(TransportCatalogue& catalogue, std::istream& input, std::ostream& output) {
     std::string count;
-    std::getline(std::cin, count);
+    std::getline(input, count);
     
     std::string str;
     std::vector<std::string> query;
     auto amount = stoi(count);
     
     for (int i = 0; i < amount; ++i) {
-        std::getline(std::cin, str);
+        std::getline(input, str);
         query.push_back(str);
     }
     
     for (auto& strr : query) {
-        query_(catalogue, strr);
+        query_(catalogue, strr, output);
     }
 }

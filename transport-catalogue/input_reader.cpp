@@ -59,9 +59,9 @@ Bus split_bus(TransportCatalogue& catalogue, std::string& str) {
     return bus;
 }
 
-void input_(TransportCatalogue& catalogue) {
+void input_(TransportCatalogue& catalogue, std::istream& input) {
     std::string count;
-    std::getline(std::cin, count);
+    std::getline(input, count); 
     
     if (count != "") {
         std::string str;
@@ -70,7 +70,7 @@ void input_(TransportCatalogue& catalogue) {
         auto bus_distance = 3;
         
         for (int i = 0; i < amount; ++i) {
-            std::getline(std::cin, str);
+            std::getline(input, str);
             
             if (str != "") {
                 auto space_pos = str.find_first_not_of(' ');
