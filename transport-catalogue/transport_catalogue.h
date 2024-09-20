@@ -2,53 +2,69 @@
 #include <deque>
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <unordered_set>
 #include <iomanip>
 #include <iostream>
-
+#include <unordered_set>
+#include <unordered_map>
 #include "geo.h"
-
-struct Stop {
+ 
+struct Bus;
+    
+struct Stop {    
     std::string name_;
     double latitude_;
     double longitude_;
-
-    auto tuple() const {
-        return tie(name_, latitude_, longitude_);
-    }
-
-    bool operator==(const Stop& other) const {
-        return tuple() == other.tuple();
-    }
+    
+    std::vector<Bus*> buses_;
 };
-
-struct Bus {
+ 
+struct Bus { 
     std::string name_;
-    std::deque<const Stop*> stops_;
+    std::vector<Stop*> stops_;
 };
-
-struct BusStatistics {
-    int stops_count;
-    int unique_stops_count;
-    double route_length;
+ 
+struct Distance {    
+    const Stop* A;
+    const Stop* B;
+    int distance;
 };
-
-class TransportCatalogue {
+ 
+class DistanceHasher {
 public:
+    std::size_t operator()(const std::pair<const Stop*, const Stop*> pair_stops) const noexcept {
+        auto hash_1 = static_cast<const void*>(pair_stops.first);
+        auto hash_2 = static_cast<const void*>(pair_stops.second);
+        return hasher_(hash_1) * 17 + hasher_(hash_2);
+    }
+private:
+    std::hash<const void*> hasher_;
+};
+ 
+typedef  std::unordered_map<std::string_view , Stop*> StopMap;
+typedef  std::unordered_map<std::string_view , Bus*> BusMap;
+typedef  std::unordered_map<std::pair<const Stop*, const Stop*>, int, DistanceHasher> DistanceMap;
+ 
+class TransportCatalogue {
+public:   
     void add_bus(Bus&& bus);
     void add_stop(Stop&& stop);
-
-    const Bus* get_bus(std::string_view bus_name);
-    const Stop* get_stop(std::string_view stop_name);
-
-    BusStatistics get_bus_statistics(const Bus* bus);
-    std::vector<std::string> get_buses_by_stop(std::string_view stop_name);
-
+    void add_distance(std::vector<Distance> distances);
+    
+    Bus* get_bus(std::string_view _bus_name);
+    Stop* get_stop(std::string_view _stop_name);
+ 
+    std::unordered_set<const Bus*> stop_get_uniq_buses(Stop* stop);    
+    std::unordered_set<const Stop*> get_uniq_stops(Bus* bus);
+    double get_length(Bus* bus);
+    
+    size_t get_distance_stop(const Stop* _start, const Stop* _finish);
+    size_t get_distance_to_bus(Bus* _bus);
 private:
-    std::deque<Bus> buses_;
     std::deque<Stop> stops_;
-    std::unordered_map<std::string_view, const Stop*> stop_name_to_stop_;
-    std::unordered_map<std::string_view, const Bus*> bus_name_to_bus_;
-    std::unordered_map<std::string_view, std::vector<std::string>> stop_to_buses_map_;
+    StopMap stopname_to_stop;
+    
+    std::deque<Bus> buses_;
+    BusMap busname_to_bus;
+    
+    DistanceMap distance_to_stop;
 };

@@ -4,9 +4,9 @@
 #include <iostream>
 
 using namespace std;
-
+ 
 int main() {
     TransportCatalogue catalogue;
-    input_(catalogue, cin);
-    output_(catalogue, cin, cout);
-}
+    input_(catalogue);
+    output_(catalogue);  
+} 

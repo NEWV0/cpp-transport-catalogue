@@ -1,24 +1,55 @@
 #include "input_reader.h"
 #include "stat_reader.h"
 #include <algorithm>
-
-Stop split_stop(std::string& str) {
+#include <iostream>
+    
+Stop split_stop(std::string str) {
     auto twopoint_pos = str.find(':');
     auto comma_pos = str.find(',');
     auto entry_length = 5;
     auto distance = 2;
-    
-    std::string name = str.substr(entry_length, 
+    Stop _stop;
+ 
+    _stop.name_ = str.substr(entry_length, 
                                   twopoint_pos - entry_length);
-    double latitude = stod(str.substr(twopoint_pos + distance, 
+    _stop.latitude_ = stod(str.substr(twopoint_pos + distance, 
                                       comma_pos - twopoint_pos - distance));
-    double longitude = stod(str.substr(comma_pos + distance));
-    return {name, 
-            latitude, 
-            longitude};
+    _stop.longitude_ = stod(str.substr(comma_pos + distance));
+    
+    return _stop;
 }
-
-Bus split_bus(TransportCatalogue& catalogue, std::string& str) {
+ 
+std::vector<Distance> split_distance(std::string str, TransportCatalogue& catalogue) {
+    
+    std::vector<Distance> distances_;
+    auto entry_length = 5;
+    auto twopoint_pos = str.find(':');
+    auto space = 2;
+    
+    std::string name_ = str.substr(entry_length, 
+                                   twopoint_pos - entry_length);
+    str = str.substr(str.find(',') + 1);
+    str = str.substr(str.find(',') + space);
+    
+    while(str.find(',') != std::string::npos){
+        
+        
+        int distance = stoi(str.substr(0, str.find('m')));
+        std::string stop_dist_name = str.substr(str.find('m') + entry_length);
+        stop_dist_name = stop_dist_name.substr(0, stop_dist_name.find(','));
+        
+        distances_.push_back({catalogue.get_stop(name_), catalogue.get_stop(stop_dist_name), distance});
+        
+        str = str.substr(str.find(',') + space);
+    }
+    std::string last_name = str.substr(str.find('m') + entry_length);
+    int distance = stoi(str.substr(0, str.find('m')));
+    
+    distances_.push_back({catalogue.get_stop(name_), catalogue.get_stop(last_name), distance});
+    return distances_;
+}
+ 
+Bus split_bus(TransportCatalogue& catalogue, std::string_view str) {
     auto entry_length = 4;
     auto distance = 2;
     auto twopoint_pos = str.find(':');
@@ -58,34 +89,44 @@ Bus split_bus(TransportCatalogue& catalogue, std::string& str) {
     }
     return bus;
 }
-
-void input_(TransportCatalogue& catalogue, std::istream& input) {
+ 
+void input_(TransportCatalogue& catalogue) {
+    
     std::string count;
-    std::getline(input, count); 
+    std::getline(std::cin, count);
     
     if (count != "") {
         std::string str;
         std::vector<std::string> buses;
+        std::vector<std::string> stops;
         int amount = stoi(count);
         auto bus_distance = 3;
         
         for (int i = 0; i < amount; ++i) {
-            std::getline(input, str);
+            std::getline(std::cin, str);
             
             if (str != "") {
                 auto space_pos = str.find_first_not_of(' ');
                 str = str.substr(space_pos);
-
+ 
                 if (str.substr(0, bus_distance) != "Bus") {
-                    catalogue.add_stop(split_stop(str));
+                    stops.push_back(str);
                 } else {
                     buses.push_back(str);
                 }
             }
         }
         
-        for (auto& bus : buses) {
-            catalogue.add_bus(split_bus(catalogue, bus));
+        for (auto stop : stops) {
+           catalogue.add_stop(split_stop(stop));
+        }
+        
+        for (auto stop : stops) {
+           catalogue.add_distance(split_distance(stop, catalogue));
+        }
+        
+        for (auto bus : buses) {
+           catalogue.add_bus(split_bus(catalogue, bus));
         }
     }
 }
