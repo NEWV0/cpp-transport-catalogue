@@ -7,6 +7,7 @@ using namespace std;
  
 int main() {
     TransportCatalogue catalogue;
-    input_(catalogue);
-    output_(catalogue);  
+    input_(catalogue, std::cin);
+    output_(catalogue, std::cin);
+
 } 

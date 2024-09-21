@@ -24,8 +24,8 @@ struct Bus {
 };
  
 struct Distance {    
-    const Stop* A;
-    const Stop* B;
+    const Stop* stopA;
+    const Stop* stopB;
     int distance;
 };
  
@@ -48,8 +48,7 @@ class TransportCatalogue {
 public:   
     void add_bus(Bus&& bus);
     void add_stop(Stop&& stop);
-    void add_distance(std::vector<Distance> distances);
-    
+    void add_distance(const Stop* stopA, const Stop* stopB, int distance);
     Bus* get_bus(std::string_view _bus_name);
     Stop* get_stop(std::string_view _stop_name);
  

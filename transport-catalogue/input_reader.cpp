@@ -90,10 +90,9 @@ Bus split_bus(TransportCatalogue& catalogue, std::string_view str) {
     return bus;
 }
  
-void input_(TransportCatalogue& catalogue) {
-    
+void input_(TransportCatalogue& catalogue, std::istream& input) {
     std::string count;
-    std::getline(std::cin, count);
+    std::getline(input, count);
     
     if (count != "") {
         std::string str;
@@ -103,12 +102,12 @@ void input_(TransportCatalogue& catalogue) {
         auto bus_distance = 3;
         
         for (int i = 0; i < amount; ++i) {
-            std::getline(std::cin, str);
+            std::getline(input, str);
             
             if (str != "") {
                 auto space_pos = str.find_first_not_of(' ');
                 str = str.substr(space_pos);
- 
+
                 if (str.substr(0, bus_distance) != "Bus") {
                     stops.push_back(str);
                 } else {
@@ -116,17 +115,20 @@ void input_(TransportCatalogue& catalogue) {
                 }
             }
         }
-        
+
         for (auto stop : stops) {
-           catalogue.add_stop(split_stop(stop));
+            catalogue.add_stop(split_stop(stop));
         }
-        
-        for (auto stop : stops) {
-           catalogue.add_distance(split_distance(stop, catalogue));
+
+        for (auto distance_str : stops) {  
+            for (const auto& distance_info : split_distance(distance_str, catalogue)) {
+                catalogue.add_distance(distance_info.stopA, distance_info.stopB, distance_info.distance);
+            }
         }
-        
+
         for (auto bus : buses) {
-           catalogue.add_bus(split_bus(catalogue, bus));
+            catalogue.add_bus(split_bus(catalogue, bus));
         }
     }
 }
+

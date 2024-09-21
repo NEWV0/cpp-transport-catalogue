@@ -19,12 +19,11 @@ void TransportCatalogue::add_bus(Bus&& bus_) {
     }    
 }
  
-void TransportCatalogue::add_distance(std::vector<Distance> distances) {
-    for (auto distance_ : distances){
-        auto dist_pair = std::make_pair(distance_.A, distance_.B);
-        distance_to_stop.insert(DistanceMap::value_type(dist_pair, distance_.distance));
-    }
+void TransportCatalogue::add_distance(const Stop* stopA, const Stop* stopB, int distance) {
+    auto dist_pair = std::make_pair(stopA, stopB);
+    distance_to_stop.insert(DistanceMap::value_type(dist_pair, distance));
 }
+
  
 Bus* TransportCatalogue::get_bus(std::string_view _bus_name) {   
     if(busname_to_bus.empty()){
