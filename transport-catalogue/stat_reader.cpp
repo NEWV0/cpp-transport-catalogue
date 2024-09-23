@@ -6,47 +6,27 @@
 #include <algorithm>
 #include <iomanip>
 
-struct BusStats {
-    std::string name;
-    size_t stops_count;
-    size_t unique_stops_count;
-    double route_length;
-    double curvature;
-};
-
-BusStats get_bus_stats(TransportCatalogue& catalogue, std::string_view bus_name) {
-    Bus* bus = catalogue.get_bus(bus_name);
-    if (bus != nullptr) {
-        return {
-            bus->name_,
-            bus->stops_.size(),
-            catalogue.get_uniq_stops(bus).size(),
-            static_cast<double>(catalogue.get_distance_to_bus(bus)), // Явное преобразование
-            static_cast<double>(catalogue.get_distance_to_bus(bus)) / catalogue.get_length(bus) // Явное преобразование
-        };
-    }
-    return {}; // Возвращаем пустую структуру, если автобус не найден
-}
 
 
-void query_bus(TransportCatalogue& catalogue, std::string_view str) {
+void query_bus(TransportCatalogue& catalogue, std::string_view str, std::ostream& output) {
     auto entry = 4;
     str = str.substr(entry);
     
-    BusStats stats = get_bus_stats(catalogue, str);
+    BusStats stats = catalogue.get_bus_stats(str); 
     if (!stats.name.empty()) {
-        std::cout << "Bus " << stats.name << ": "
-                  << stats.stops_count << " stops on route, "
-                  << stats.unique_stops_count << " unique stops, "
-                  << stats.route_length << " route length, " 
-                  << std::setprecision(6) << stats.curvature
-                  << " curvature" << std::endl;
+        output << "Bus " << stats.name << ": "
+               << stats.stops_count << " stops on route, "
+               << stats.unique_stops_count << " unique stops, "
+               << stats.route_length << " route length, " 
+               << std::setprecision(6) << stats.curvature
+               << " curvature" << std::endl;
     } else {      
-        std::cout << "Bus " << str << ": not found" << std::endl;
+        output << "Bus " << str << ": not found" << std::endl;
     }  
 }
 
-void query_stop(TransportCatalogue& catalogue, std::string_view stop_name) {
+
+void query_stop(TransportCatalogue& catalogue, std::string_view stop_name, std::ostream& output) {
     auto entry = 5;
     stop_name = stop_name.substr(entry);
     std::unordered_set<const Bus*> unique_buses;      
@@ -55,12 +35,12 @@ void query_stop(TransportCatalogue& catalogue, std::string_view stop_name) {
     Stop* stop = catalogue.get_stop(stop_name);
     
     if (stop != nullptr) {
-        unique_buses = catalogue.stop_get_uniq_buses(stop);
+        unique_buses = catalogue.get_unique_buses_for_stop(stop);
         
         if(unique_buses.empty()){
-            std::cout << "Stop " << stop_name << ": no buses" << std::endl;
+            output << "Stop " << stop_name << ": no buses" << std::endl;
         } else {
-            std::cout << "Stop " << stop_name << ": buses ";
+            output << "Stop " << stop_name << ": buses ";
  
             for (const Bus* _bus : unique_buses) {
                 bus_name_v.push_back(_bus->name_);
@@ -69,24 +49,28 @@ void query_stop(TransportCatalogue& catalogue, std::string_view stop_name) {
             std::sort(bus_name_v.begin(), bus_name_v.end());         
  
             for (const std::string& _bus_name : bus_name_v) {
-                std::cout << _bus_name << " ";
+                output << _bus_name << " ";
             }
-            std::cout << std::endl;
+            output << std::endl;
         }        
     } else {      
-        std::cout << "Stop " << stop_name << ": not found" << std::endl;
+        output << "Stop " << stop_name << ": not found" << std::endl;
     }
-}
+} 
+
+
 
 void query_(TransportCatalogue& catalogue, std::string_view str) {
     if (str.substr(0, 3) == "Bus") {
-        query_bus(catalogue, str);
+        query_bus(catalogue, str, std::cout);
     } else if (str.substr(0, 4) == "Stop") {
-        query_stop(catalogue, str);
+        query_stop(catalogue, str, std::cout); 
     } else {
         std::cout << "Error query" << std::endl;
     }
 }
+
+
 
 void output_(TransportCatalogue& catalogue, std::istream& input) {
     std::string count;

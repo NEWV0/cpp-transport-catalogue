@@ -122,7 +122,7 @@ void input_(TransportCatalogue& catalogue, std::istream& input) {
 
         for (auto distance_str : stops) {  
             for (const auto& distance_info : split_distance(distance_str, catalogue)) {
-                catalogue.add_distance(distance_info.stopA, distance_info.stopB, distance_info.distance);
+                catalogue.add_distance(distance_info.stop_a, distance_info.stop_b, distance_info.distance);
             }
         }
 

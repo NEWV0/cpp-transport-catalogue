@@ -19,8 +19,8 @@ void TransportCatalogue::add_bus(Bus&& bus_) {
     }    
 }
  
-void TransportCatalogue::add_distance(const Stop* stopA, const Stop* stopB, int distance) {
-    auto dist_pair = std::make_pair(stopA, stopB);
+void TransportCatalogue::add_distance(const Stop* stop_a, const Stop* stop_b, int distance) {
+    auto dist_pair = std::make_pair(stop_a, stop_b);
     distance_to_stop.insert(DistanceMap::value_type(dist_pair, distance));
 }
 
