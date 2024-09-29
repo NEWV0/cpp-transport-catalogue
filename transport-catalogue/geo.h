@@ -1,26 +1,23 @@
 #pragma once
 #include <cmath>
-#include <iostream>
-
+ 
+namespace geo {
+    
+const int EARTH_RADIUS = 6371000;
+const double PI = 3.1415926535;
+    
 struct Coordinates {
     double latitude;
     double longitude;
-    
+ 
     bool operator==(const Coordinates& other) const {
-        return latitude == other.latitude 
-            && longitude == other.longitude;
+        return latitude == other.latitude && longitude == other.longitude;
+    }
+    bool operator!=(const Coordinates& other) const {
+        return !(*this == other);
     }
 };
- 
-inline double ComputeDistance(Coordinates start, Coordinates end) {
-    using namespace std;
-    if (!(start == end)) {
-        const double dr = 3.1415926535 / 180.;
-        const double earth_rad = 6371000; 
-        return acos(sin(start.latitude * dr) * sin(end.latitude * dr)
-                    + cos(start.latitude * dr) * cos(end.latitude * dr) 
-                    * cos(abs(start.longitude - end.longitude) * dr)) * earth_rad;
-    } else {
-        return 0.0;
-    }
+    
+double compute_distance(Coordinates start, Coordinates end);
+    
 }
