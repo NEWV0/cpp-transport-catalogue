@@ -76,7 +76,11 @@ void RequestHandler::execute_queries(TransportCatalogue& catalogue, std::vector<
     
     doc_out = Document{Node(result_request)};
 }
- 
+    /*
+    Как это грамотно сделать? 
+    Переносим весь метод в map_render.cpp, а из request_handler.cpp полностью удаляем? 
+    Грубо говоря, перенос просто делаем? 
+    */
 void RequestHandler::execute_render_map(MapRenderer& map_catalogue, TransportCatalogue& catalogue) const {   
     std::vector<std::pair<Bus*, int>> buses_palette;  
     std::vector<Stop*> stops_sort;
@@ -175,7 +179,11 @@ std::vector<std::string_view> RequestHandler::get_sort_buses_names(TransportCata
         return {};
     }
 }
- 
+
+    /*
+    Объясните подробнее, пожалуйста. как именно это должно быть частью справочника? 
+    Как порекомендуете сделать?
+    */
 BusQueryResult RequestHandler::bus_query(TransportCatalogue& catalogue, std::string_view bus_name) {
     BusQueryResult bus_info;
     Bus* bus = catalogue.get_bus(bus_name);
