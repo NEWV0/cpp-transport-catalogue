@@ -76,73 +76,7 @@ void RequestHandler::execute_queries(TransportCatalogue& catalogue, std::vector<
     
     doc_out = Document{Node(result_request)};
 }
-    /*
-    Как это грамотно сделать? 
-    Переносим весь метод в map_render.cpp, а из request_handler.cpp полностью удаляем? 
-    Грубо говоря, перенос просто делаем? 
-    */
-void RequestHandler::execute_render_map(MapRenderer& map_catalogue, TransportCatalogue& catalogue) const {   
-    std::vector<std::pair<Bus*, int>> buses_palette;  
-    std::vector<Stop*> stops_sort;
-    int palette_size = 0;
-    int palette_index = 0;
-    
-    palette_size = map_catalogue.get_palette_size();
-    if (palette_size == 0) {
-        std::cout << "color palette is empty";
-        return;
-    }
  
-    auto buses = catalogue.get_busname_to_bus();   
-    if (buses.size() > 0) {
-        
-        for (std::string_view bus_name : get_sort_buses_names(catalogue)) {
-            Bus* bus_info = catalogue.get_bus(bus_name);
- 
-            if (bus_info) {  
-                if (bus_info->stops.size() > 0) {
-                    buses_palette.push_back(std::make_pair(bus_info, palette_index));
-                    palette_index++;
-                    
-                    if (palette_index == palette_size) {
-                        palette_index = 0;
-                    }
-                }
-            }
-        }
- 
-        if (buses_palette.size() > 0) {
-            map_catalogue.add_line(buses_palette);
-            map_catalogue.add_buses_name(buses_palette);            
-        }          
-    }
- 
-    auto stops = catalogue.get_stopname_to_stop();   
-    if (stops.size() > 0) {
-        std::vector<std::string_view> stops_name;
- 
-        for (auto& [stop_name, stop] : stops) {
-            
-            if (stop->buses.size() > 0) {
-                stops_name.push_back(stop_name);
-            }
-        }
-        
-        std::sort(stops_name.begin(), stops_name.end());
-        
-        for(std::string_view stop_name : stops_name){
-            Stop* stop = catalogue.get_stop(stop_name);
-            if(stop){
-                stops_sort.push_back(stop);
-            }
-        }
-        
-        if (stops_sort.size() > 0) { 
-            map_catalogue.add_stops_circle(stops_sort);
-            map_catalogue.add_stops_name(stops_sort);
-        }
-    }
-}
    
 std::vector<geo::Coordinates> RequestHandler::get_stops_coordinates(TransportCatalogue& catalogue_) const {
     
@@ -179,30 +113,16 @@ std::vector<std::string_view> RequestHandler::get_sort_buses_names(TransportCata
         return {};
     }
 }
-
-    /*
-    Объясните подробнее, пожалуйста. как именно это должно быть частью справочника? 
-    Как порекомендуете сделать?
-    */
+ 
 BusQueryResult RequestHandler::bus_query(TransportCatalogue& catalogue, std::string_view bus_name) {
-    BusQueryResult bus_info;
     Bus* bus = catalogue.get_bus(bus_name);
-    
-    if (bus != nullptr) {                
-        bus_info.name = bus->name;
-        bus_info.not_found = false;
-        bus_info.stops_on_route = bus->stops.size();
-        bus_info.unique_stops = catalogue.get_uniq_stops(bus).size();
-        bus_info.route_length = bus->route_length;
-        bus_info.curvature = double(catalogue.get_distance_to_bus(bus)
-                                    /catalogue.get_length(bus));                    
-    } else {  
-        bus_info.name = bus_name;
-        bus_info.not_found = true;
+
+    if (bus != nullptr) {
+        return bus->query_result; 
+    } else {
+        return { bus_name, true }; 
     }
-    
-    return bus_info;
-}   
+} 
     
 StopQueryResult RequestHandler::stop_query(TransportCatalogue& catalogue, std::string_view stop_name) {
     std::unordered_set<const Bus*> unique_buses;

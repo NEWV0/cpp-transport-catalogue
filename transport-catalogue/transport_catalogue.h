@@ -1,3 +1,5 @@
+// transport_catalogue.h
+
 #pragma once
 #include <deque>
 #include <string>
@@ -6,13 +8,21 @@
 #include <iostream>
 #include <unordered_set>
 #include <unordered_map>
- 
+
 #include "domain.h"
- 
+
 using namespace domain;
- 
-namespace transport_catalogue {   
- 
+
+namespace transport_catalogue {
+
+struct Bus {
+    std::string name;
+    std::vector<Stop*> stops;
+    size_t route_length = 0;
+    double curvature = 0.0;
+    BusQueryResult query_result; 
+};
+
 struct DistanceHasher {
     std::hash<const void*> hasher;
     
@@ -22,11 +32,11 @@ struct DistanceHasher {
         return hasher(hash_1) * 17 + hasher(hash_2);
     }  
 };
-    
-typedef  std::unordered_map<std::string_view, Stop*> StopMap;
-typedef  std::unordered_map<std::string_view, Bus*> BusMap;
-typedef  std::unordered_map<std::pair<const Stop*, const  Stop*>, int, DistanceHasher> DistanceMap;
- 
+
+typedef std::unordered_map<std::string_view, Stop*> StopMap;
+typedef std::unordered_map<std::string_view, Bus*> BusMap;
+typedef std::unordered_map<std::pair<const Stop*, const Stop*>, int, DistanceHasher> DistanceMap;
+
 class TransportCatalogue {
 public:      
     void add_bus(Bus&& bus);
@@ -52,9 +62,11 @@ private:
     
     std::deque<Bus> buses;
     BusMap busname_to_bus;
-    
+
     DistanceMap distance_to_stop;
     
+    // Добавьте здесь поле для хранения кэшированного результата для каждого автобуса
+    std::unordered_map<std::string_view, BusQueryResult> bus_query_cache;
 };
-    
-}
+
+} // namespace transport_catalogue

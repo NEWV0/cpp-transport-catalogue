@@ -8,7 +8,68 @@ void TransportCatalogue::add_stop(Stop&& stop) {
     Stop* stop_buf = &stops.back();
     stopname_to_stop.insert(transport_catalogue::StopMap::value_type(stop_buf->name, stop_buf));
 }
+void TransportCatalogue:execute_render_map(MapRenderer& map_catalogue, TransportCatalogue& catalogue) const {   
+    std::vector<std::pair<Bus*, int>> buses_palette;  
+    std::vector<Stop*> stops_sort;
+    int palette_size = 0;
+    int palette_index = 0;
+    
+    palette_size = map_catalogue.get_palette_size();
+    if (palette_size == 0) {
+        std::cout << "color palette is empty";
+        return;
+    }
  
+    auto buses = catalogue.get_busname_to_bus();   
+    if (buses.size() > 0) {
+        
+        for (std::string_view bus_name : get_sort_buses_names(catalogue)) {
+            Bus* bus_info = catalogue.get_bus(bus_name);
+ 
+            if (bus_info) {  
+                if (bus_info->stops.size() > 0) {
+                    buses_palette.push_back(std::make_pair(bus_info, palette_index));
+                    palette_index++;
+                    
+                    if (palette_index == palette_size) {
+                        palette_index = 0;
+                    }
+                }
+            }
+        }
+ 
+        if (buses_palette.size() > 0) {
+            map_catalogue.add_line(buses_palette);
+            map_catalogue.add_buses_name(buses_palette);            
+        }          
+    }
+ 
+    auto stops = catalogue.get_stopname_to_stop();   
+    if (stops.size() > 0) {
+        std::vector<std::string_view> stops_name;
+ 
+        for (auto& [stop_name, stop] : stops) {
+            
+            if (stop->buses.size() > 0) {
+                stops_name.push_back(stop_name);
+            }
+        }
+        
+        std::sort(stops_name.begin(), stops_name.end());
+        
+        for(std::string_view stop_name : stops_name){
+            Stop* stop = catalogue.get_stop(stop_name);
+            if(stop){
+                stops_sort.push_back(stop);
+            }
+        }
+        
+        if (stops_sort.size() > 0) { 
+            map_catalogue.add_stops_circle(stops_sort);
+            map_catalogue.add_stops_name(stops_sort);
+        }
+    }
+} 
 void TransportCatalogue::add_bus(Bus&& bus) {
     Bus* bus_buf;
     
